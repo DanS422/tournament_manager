@@ -1,6 +1,12 @@
+<!DOCTYPE html>
 <html>
 
-  <body>
+  <head>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body class="container">
     <h1>Tournaments</h1>
     <ul>
       {{range .}}
@@ -8,7 +14,7 @@
         {{.Name}} - {{.Location}}
         <form method="POST" action="/tournaments/{{.ID}}">
           <input type="hidden" name="_method" value="DELETE">
-          <button>Delete</button>
+          <button class="btn btn-primary">Delete</button>
         </form>
         <a href="/tournaments/{{.ID}}">Show</a>
       </li>
@@ -19,7 +25,7 @@
     <form method="POST" action="/tournaments">
       Name: <input type="text" name="name"><br>
       Location: <input type="text" name="location"><br>
-      <input type="submit" value="Add">
+      <input type="submit" value="Add" class="btn btn-primary">
     </form>
   </body>
 

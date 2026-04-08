@@ -1,0 +1,25 @@
+# Root folder of your project
+root = "."
+
+# Temporary folder (not required if you build binary to project root)
+tmp_dir = "tmp"
+
+# =========================
+# Build settings
+# =========================
+[build]
+# Build command: output binary to project root or tmp folder
+cmd = "go build -o ./tmp/main ./cmd/app"
+# File extensions to watch
+include_ext = ["go", "tpl", "html"]
+# Folders to ignore
+exclude_dir = ["assets", "vendor", "tmp"]
+
+# =========================
+# Run settings
+# =========================
+[run]
+# Path to the binary Air will execute
+cmd = "./tmp/main"
+# Optional: environment variables
+env = ["PORT=8080"]
