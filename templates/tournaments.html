@@ -1,0 +1,26 @@
+<html>
+
+  <body>
+    <h1>Tournaments</h1>
+    <ul>
+      {{range .}}
+      <li>
+        {{.Name}} - {{.Location}}
+        <form method="POST" action="/tournaments/{{.ID}}">
+          <input type="hidden" name="_method" value="DELETE">
+          <button>Delete</button>
+        </form>
+        <a href="/tournaments/{{.ID}}">Show</a>
+      </li>
+      {{end}}
+    </ul>
+
+    <h2>Add Tournament</h2>
+    <form method="POST" action="/tournaments">
+      Name: <input type="text" name="name"><br>
+      Location: <input type="text" name="location"><br>
+      <input type="submit" value="Add">
+    </form>
+  </body>
+
+</html>
