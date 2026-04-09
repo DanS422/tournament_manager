@@ -1,0 +1,5 @@
+[common]
+add = "Hinzufügen"
+delete = "Löschen"
+edit = "Editieren"
+update = "Aktualisieren"

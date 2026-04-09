@@ -11,7 +11,7 @@ tmp_dir = "tmp"
 # Build command: output binary to project root or tmp folder
 cmd = "go build -o ./tmp/main ./cmd/app"
 # File extensions to watch
-include_ext = ["go", "tpl", "html"]
+include_ext = ["go", "tpl", "html", "toml"]
 # Folders to ignore
 exclude_dir = ["assets", "vendor", "tmp"]
 

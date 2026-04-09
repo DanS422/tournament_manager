@@ -1,21 +1,19 @@
-<!DOCTYPE html>
-<html>
+{{define "tournament.html"}}
+{{template "base.html" .}}
+{{end}}
+{{define "content"}}
+<h1>Tournament</h1>
+<div>{{.Tournament.Name}} - {{.Tournament.Location}}</div>
+<form method="POST" action="/tournaments/{{.Tournament.ID}}">
+  <input type="hidden" name="_method" value="DELETE">
+  <button>Delete</button>
+</form>
 
-  <body>
-    <h1>Tournament</h1>
-    <div>{{.Name}} - {{.Location}}</div>
-    <form method="POST" action="/tournaments/{{.ID}}">
-      <input type="hidden" name="_method" value="DELETE">
-      <button>Delete</button>
-    </form>
-
-    <h2>Edit Tournament</h2>
-    <form method="POST" action="/tournaments/{{.ID}}">
-      <input type="hidden" name="_method" value="PATCH">
-      Name: <input type="text" name="name" value="{{.Name}}">
-      Location: <input type="text" name="location" value="{{.Location}}">
-      <input type="submit" value="Update">
-    </form>
-  </body>
-
-</html>
+<h2>Edit Tournament</h2>
+<form method="POST" action="/tournaments/{{.Tournament.ID}}">
+  <input type="hidden" name="_method" value="PATCH">
+  Name: <input type="text" name="name" value="{{.Tournament.Name}}">
+  Location: <input type="text" name="location" value="{{.Tournament.Location}}">
+  <input type="submit" value='{{T "common.update"}}'>
+</form>
+{{end}}

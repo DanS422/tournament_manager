@@ -5,21 +5,38 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	tmpl "tournament_manager/internal/tmpl"
 )
 
 type Handler struct {
-	service *Service
-	tmpl    *template.Template
+	service   *Service
+	templates map[string]*template.Template
 }
 
 func NewHandler(s *Service) *Handler {
-	tmpl := template.Must(template.ParseFiles("templates/tournament.html", "templates/tournaments.html"))
-	return &Handler{service: s, tmpl: tmpl}
+	t := make(map[string]*template.Template)
+
+	pages := []string{"tournaments", "tournament"}
+	for _, p := range pages {
+		t[p] = template.Must(template.New("").
+			Funcs(tmpl.FuncMap()).
+			ParseFiles(
+				"templates/base.html",
+				"templates/"+p+".html",
+			))
+	}
+
+	return &Handler{
+		service:   s,
+		templates: t,
+	}
 }
 
 func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	tournaments := h.service.List()
-	h.tmpl.ExecuteTemplate(w, "tournaments.html", tournaments)
+	tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
+		"Tournaments": tournaments,
+	})
 }
 
 func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,20 +63,22 @@ func (h *Handler) ByIDHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		h.deleteHandler(w, r, id)
 	case http.MethodGet:
-		h.showHandler(w, id)
+		h.showHandler(w, r, id)
 	default:
 		http.Error(w, "request method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func (h *Handler) showHandler(w http.ResponseWriter, id int) {
+func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id int) {
 	tournament, err := h.service.show(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 
-	h.tmpl.ExecuteTemplate(w, "tournament.html", tournament)
+	tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
+		"Tournament": tournament,
+	})
 }
 
 func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) {

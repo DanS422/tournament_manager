@@ -1,32 +1,25 @@
-<!DOCTYPE html>
-<html>
-
-  <head>
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-    <script src="/static/js/bootstrap.bundle.min.js"></script>
-  </head>
-
-  <body class="container">
-    <h1>Tournaments</h1>
-    <ul>
-      {{range .}}
-      <li>
-        {{.Name}} - {{.Location}}
-        <form method="POST" action="/tournaments/{{.ID}}">
-          <input type="hidden" name="_method" value="DELETE">
-          <button class="btn btn-primary">Delete</button>
-        </form>
-        <a href="/tournaments/{{.ID}}">Show</a>
-      </li>
-      {{end}}
-    </ul>
-
-    <h2>Add Tournament</h2>
-    <form method="POST" action="/tournaments">
-      Name: <input type="text" name="name"><br>
-      Location: <input type="text" name="location"><br>
-      <input type="submit" value="Add" class="btn btn-primary">
+{{define "tournaments.html"}}
+{{template "base.html" .}}
+{{end}}
+{{define "content"}}
+<h1>Tournaments</h1>
+<ul>
+  {{range .Tournaments}}
+  <li>
+    {{.Name}} - {{.Location}}
+    <form method="POST" action="/tournaments/{{.ID}}">
+      <input type="hidden" name="_method" value="DELETE">
+      <button class="btn btn-primary">{{T "common.delete" nil}}</button>
     </form>
-  </body>
+    <a href="/tournaments/{{.ID}}">Show</a>
+  </li>
+  {{end}}
+</ul>
 
-</html>
+<h2>Add Tournament</h2>
+<form method="POST" action="/tournaments">
+  Name: <input type="text" name="name"><br>
+  Location: <input type="text" name="location"><br>
+  <input type="submit" value="Add" class="btn btn-primary">
+</form>
+{{end}}
