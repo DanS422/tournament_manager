@@ -33,7 +33,12 @@ func NewHandler(s *Service) *Handler {
 }
 
 func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
-	tournaments := h.service.List()
+	tournaments, err := h.service.List()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
 	tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
 		"Tournaments": tournaments,
 	})

@@ -1,64 +1,122 @@
 package tournament
 
-import "errors"
+import (
+	"database/sql"
+	"errors"
+)
 
 type Repository struct {
-	data   map[int]Tournament
-	nextID int
+	db *sql.DB
 }
 
-func NewRepository() *Repository {
-	return &Repository{
-		data:   make(map[int]Tournament),
-		nextID: 1,
+func NewRepository() (*Repository, error) {
+	db, err := sql.Open("sqlite", "tournaments.db")
+	if err != nil {
+		return nil, err
 	}
+
+	db.SetMaxIdleConns(1)
+	return &Repository{db: db}, nil
 }
 
-func (r *Repository) Add(t Tournament) Tournament {
-	t.ID = r.nextID
-	r.nextID++
-	r.data[t.ID] = t
-	return t
+func (r *Repository) Add(t Tournament) (Tournament, error) {
+	result, err := r.db.Exec(
+		"INSERT INTO tournaments (name, location) VALUES (?, ?)",
+		t.Name, t.Location,
+	)
+
+	if err != nil {
+		return Tournament{}, err
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		return Tournament{}, err
+	}
+
+	t.ID = int(id)
+	return t, nil
 }
 
-func (r *Repository) GetAll() []Tournament {
+func (r *Repository) GetAll() ([]Tournament, error) {
+	rows, err := r.db.Query("SELECT id, name, location FROM tournaments")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
 	list := []Tournament{}
-	for _, t := range r.data {
+	for rows.Next() {
+		var t Tournament
+		if err := rows.Scan(&t.ID, &t.Name, &t.Location); err != nil {
+			return nil, err
+		}
 		list = append(list, t)
 	}
 
-	return list
+	return list, nil
 }
 
 func (r *Repository) Show(id int) (Tournament, error) {
-	tournament, ok := r.data[id]
+	var t Tournament
 
-	if !ok {
+	err := r.db.QueryRow("SELECT id, name, location FROM tournaments WHERE id = ?", id).Scan(&t.ID, &t.Name, &t.Location)
+	if err == sql.ErrNoRows {
 		return Tournament{}, errors.New("tournament not found")
 	}
 
-	return tournament, nil
+	if err != nil {
+		return Tournament{}, err
+	}
+
+	return t, nil
 }
 
 func (r *Repository) Update(id int, t Tournament) error {
-	_, ok := r.data[id]
+	result, err := r.db.Exec(
+		"UPDATE tournaments SET name = ?, location = ? where id = ?",
+		t.Name,
+		t.Location,
+		id,
+	)
 
-	if !ok {
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
 		return errors.New("tournament not found")
 	}
 
-	t.ID = id
-	r.data[id] = t
 	return nil
 }
 
 func (r *Repository) Delete(id int) error {
-	_, ok := r.data[id]
+	result, err := r.db.Exec(
+		"DELETE FROM tournaments WHERE id = ?",
+		id,
+	)
+	if err != nil {
+		return err
+	}
 
-	if !ok {
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
 		return errors.New("tournament not found")
 	}
 
-	delete(r.data, id)
 	return nil
 }

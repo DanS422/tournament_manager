@@ -1,6 +1,8 @@
 package tournament
 
-import "errors"
+import (
+	"errors"
+)
 
 type Service struct {
 	repo *Repository
@@ -14,11 +16,22 @@ func (s *Service) Create(name, location string) (Tournament, error) {
 	if name == "" {
 		return Tournament{}, errors.New("Name is required")
 	}
-	return s.repo.Add(Tournament{Name: name, Location: location}), nil
+	t, err := s.repo.Add(Tournament{Name: name, Location: location})
+	if err != nil {
+		return Tournament{}, err
+	}
+
+	return t, nil
 }
 
-func (s *Service) List() []Tournament {
-	return s.repo.GetAll()
+func (s *Service) List() ([]Tournament, error) {
+	tournaments, err := s.repo.GetAll()
+
+	if err != nil {
+		return []Tournament{}, err
+	}
+
+	return tournaments, nil
 }
 
 func (s *Service) show(id int) (Tournament, error) {

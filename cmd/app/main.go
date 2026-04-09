@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"tournament_manager/internal/db"
 	i18nhelper "tournament_manager/internal/i18n"
 	"tournament_manager/internal/middleware"
 	"tournament_manager/internal/tournament"
@@ -14,12 +15,30 @@ import (
 )
 
 func main() {
+	switch os.Getenv("MIGRATE") {
+	case "up":
+		db.MigrateUp()
+		return
+	case "down":
+		db.MigrateDown()
+		return
+	case "reset":
+		db.MigrateReset()
+		return
+	}
+
+	// normal app startup
+
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 	bundle.LoadMessageFile("locales/en.toml")
 	bundle.LoadMessageFile("locales/de.toml")
 
-	repo := tournament.NewRepository()
+	repo, err := tournament.NewRepository()
+
+	if err != nil {
+		panic("dtabase connection failed")
+	}
 	service := tournament.NewService(repo)
 	handler := tournament.NewHandler(service)
 
