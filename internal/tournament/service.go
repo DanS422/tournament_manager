@@ -4,6 +4,14 @@ import (
 	"errors"
 )
 
+type ServiceInterface interface {
+	List() ([]Tournament, error)
+	Create(string, string) (Tournament, error)
+	Show(int) (Tournament, error)
+	Update(int, string, string) error
+	Delete(int) error
+}
+
 type Service struct {
 	repo *Repository
 }
@@ -34,7 +42,7 @@ func (s *Service) List() ([]Tournament, error) {
 	return tournaments, nil
 }
 
-func (s *Service) show(id int) (Tournament, error) {
+func (s *Service) Show(id int) (Tournament, error) {
 	return s.repo.Show(id)
 }
 

@@ -11,11 +11,11 @@ import (
 )
 
 type Handler struct {
-	service   *Service
+	service   ServiceInterface
 	templates map[string]*template.Template
 }
 
-func NewHandler(s *Service) *Handler {
+func NewHandler(s ServiceInterface) *Handler {
 	t := make(map[string]*template.Template)
 
 	pages := []string{"tournaments", "tournament"}
@@ -39,6 +39,7 @@ func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
@@ -60,6 +61,7 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(errs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
@@ -72,13 +74,19 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := h.service.Create(t.Name, t.Location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *Handler) ByIDHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/tournaments/")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusNotFound)
+		return
+	}
 
 	switch requestMethod := r.Method; requestMethod {
 	case http.MethodPatch, http.MethodPut:
@@ -93,7 +101,7 @@ func (h *Handler) ByIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id int) {
-	tournament, err := h.service.show(id)
+	tournament, err := h.service.Show(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -111,6 +119,7 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) 
 	err := h.service.Update(id, name, location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -119,6 +128,7 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) 
 func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, id int) {
 	if err := h.service.Delete(id); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
