@@ -18,8 +18,17 @@
 
 <h2>Add Tournament</h2>
 <form method="POST" action="/tournaments">
-  Name: <input type="text" name="name"><br>
-  Location: <input type="text" name="location"><br>
+  Name: <input type="text" name="name">
+  {{ if .Errors.name }}
+  <div class="color:red;">{{ .Errors.name }}</div>
+  {{ end }}
+  <br>
+  Location: <input type="text" name="location">
+  {{ if .Errors.location }}
+  <div class="color:red">{{ .Errors.location }}</div>
+  {{ end }}
+  <br>
+
   <input type="submit" value="Add" class="btn btn-primary">
 </form>
 {{end}}

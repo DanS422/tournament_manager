@@ -1,7 +1,7 @@
 package tournament
 
 type Tournament struct {
-	ID       int
-	Name     string
-	Location string
+	ID       int    `json:"id"`
+	Name     string `json:"name" validate:"required"`
+	Location string `json:"location" validate:"required"`
 }

@@ -1,11 +1,13 @@
 package tournament
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
 	tmpl "tournament_manager/internal/tmpl"
+	"tournament_manager/internal/validation"
 )
 
 type Handler struct {
@@ -49,9 +51,25 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	name := r.FormValue("name")
-	location := r.FormValue("location")
-	_, err := h.service.Create(name, location)
+	t := Tournament{
+		Name:     r.FormValue("name"),
+		Location: r.FormValue("location"),
+	}
+	if errs := validation.ValidateStruct(t); len(errs) > 0 {
+		tournaments, err := h.service.List()
+		fmt.Println(errs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
+			"Errors":      errs,
+			"Tournaments": tournaments,
+		})
+
+		return
+	}
+	_, err := h.service.Create(t.Name, t.Location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
