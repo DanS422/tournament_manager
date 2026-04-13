@@ -1,34 +1,88 @@
 {{define "tournaments.html"}}
 {{template "base.html" .}}
 {{end}}
+
 {{define "content"}}
-<h1>Tournaments</h1>
-<ul>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Tournaments</h2>
+</div>
+
+<!-- LIST -->
+<div class="row g-3 mb-5">
+
   {{range .Tournaments}}
-  <li>
-    {{.Name}} - {{.Location}}
-    <form method="POST" action="/tournaments/{{.ID}}">
-      <input type="hidden" name="_method" value="DELETE">
-      <button class="btn btn-primary">{{T "common.delete" nil}}</button>
-    </form>
-    <a href="/tournaments/{{.ID}}">Show</a>
-  </li>
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+
+        <h5 class="card-title mb-1">{{.Name}}</h5>
+        <p class="text-muted mb-3">📍 {{.Location}}</p>
+
+        <div class="d-flex justify-content-between align-items-center">
+
+          <a href="/tournaments/{{.ID}}" class="btn btn-sm btn-outline-primary">
+            View
+          </a>
+
+          <form method="POST" action="/tournaments/{{.ID}}">
+            <input type="hidden" name="_method" value="DELETE">
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this tournament?')">
+              Delete
+            </button>
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
   {{end}}
-</ul>
 
-<h2>Add Tournament</h2>
-<form method="POST" action="/tournaments">
-  Name: <input type="text" name="name">
-  {{ if .Errors.name }}
-  <div class="color:red;">{{ .Errors.name }}</div>
-  {{ end }}
-  <br>
-  Location: <input type="text" name="location">
-  {{ if .Errors.location }}
-  <div class="color:red">{{ .Errors.location }}</div>
-  {{ end }}
-  <br>
+</div>
 
-  <input type="submit" value="Add" class="btn btn-primary">
-</form>
+<!-- FORM -->
+<div class="card shadow-sm">
+  <div class="card-body">
+
+    <h4 class="mb-3">Add Tournament</h4>
+
+    <form method="POST" action="/tournaments" class="row g-3">
+
+      <!-- Name -->
+      <div class="col-md-6">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" class="form-control {{if .Errors.name}}is-invalid{{end}}">
+
+        {{if .Errors.name}}
+        <div class="invalid-feedback">
+          {{.Errors.name}}
+        </div>
+        {{end}}
+      </div>
+
+      <!-- Location -->
+      <div class="col-md-6">
+        <label class="form-label">Location</label>
+        <input type="text" name="location" class="form-control {{if .Errors.location}}is-invalid{{end}}">
+
+        {{if .Errors.location}}
+        <div class="invalid-feedback">
+          {{.Errors.location}}
+        </div>
+        {{end}}
+      </div>
+
+      <!-- Submit -->
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">
+          Add Tournament
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
 {{end}}

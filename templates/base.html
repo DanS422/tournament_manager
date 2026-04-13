@@ -2,21 +2,32 @@
 <html>
 
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <script src="/static/js/bootstrap.bundle.min.js"></script>
+
+    <title>Tournament Manager</title>
   </head>
 
-  <body class="container">
-    <header>
-      <h1>My Tournament App</h1>
-    </header>
+  <body class="d-flex flex-column min-vh-100 bg-light">
 
-    {{/* This is the content block */}}
-    {{block "content" .}}{{end}}
+    <nav class="navbar navbar-dark bg-dark mb-4">
+      <div class="container">
+        <span class="navbar-brand">🏆 Tournament Manager</span>
+      </div>
+    </nav>
 
-    <footer>
-      <p>&copy; 2026 Tournament Manager</p>
+    <main class="container pb-5">
+
+      {{block "content" .}}{{end}}
+
+    </main>
+
+    <footer class="text-center text-muted py-3 mt-auto border-top bg-white">
+      &copy; 2026 Tournament Manager
     </footer>
+
   </body>
 
 </html>
