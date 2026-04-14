@@ -1,6 +1,7 @@
 package tournament
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
@@ -107,5 +108,224 @@ func TestCreateHandler_Success(t *testing.T) {
 
 	if !called {
 		t.Fatalf("expected Create to be called")
+	}
+}
+
+func TestListHandler_Success(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.ListFunc = func() ([]Tournament, error) {
+		called = true
+		return []Tournament{}, nil
+	}
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Content-Type", "application/html")
+
+	w := httptest.NewRecorder()
+
+	h.ListHandler(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected OK, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expected List to be called")
+	}
+}
+
+func TestListHandler_Fail(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.ListFunc = func() ([]Tournament, error) {
+		called = true
+		return []Tournament{}, errors.New("errors")
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Content-Type", "application/html")
+
+	w := httptest.NewRecorder()
+
+	h.ListHandler(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expected List to be called")
+	}
+}
+
+func TestByIDHandler_Fail(t *testing.T) {
+	mock := newMockService()
+	mock.ShowFunc = func(id int) (Tournament, error) {
+		return Tournament{}, errors.New("errors")
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/tournaments/1", nil)
+	req.Header.Set("Content-Type", "application/html")
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expect 404, got %d", w.Code)
+	}
+}
+
+func TestByIDHandler_Show_Sucess(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.ShowFunc = func(id int) (Tournament, error) {
+		called = true
+		return Tournament{}, nil
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/tournaments/1", nil)
+	req.Header.Set("Content-Type", "application/html")
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expect 200, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expect Show to be called")
+	}
+}
+
+func TestByIDHandler_Delete_Success(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.DeleteFunc = func(id int) error {
+		called = true
+		return nil
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodDelete, "/tournaments/1", nil)
+	req.Header.Set("Content-Type", "application/html")
+
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expect 302, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expect Delete to be called")
+	}
+}
+
+func TestByIDHandler_Delete_Fail(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.DeleteFunc = func(id int) error {
+		called = true
+		return errors.New("errors")
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodDelete, "/tournaments/1", nil)
+	req.Header.Set("Content-Type", "application/html")
+
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expect 400, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expect Delete to be called")
+	}
+}
+
+func TestByIDHandler_Update_Sucess(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.UpdateFunc = func(id int, name string, location string) error {
+		called = true
+		return nil
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	form := strings.NewReader("name=Test&location=SG")
+	req := httptest.NewRequest(http.MethodPatch, "/tournaments/1", form)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("expect 302, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expect Update to be called")
+	}
+}
+
+func TestByIDHandler_Update_Fail(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.UpdateFunc = func(id int, name string, location string) error {
+		called = true
+		return errors.New("error")
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	form := strings.NewReader("name=Test&location=SG")
+	req := httptest.NewRequest(http.MethodPatch, "/tournaments/1", form)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	w := httptest.NewRecorder()
+	h.ByIDHandler(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expect 400, got %d", w.Code)
+	}
+
+	if !called {
+		t.Fatalf("expect Update to be called")
 	}
 }
