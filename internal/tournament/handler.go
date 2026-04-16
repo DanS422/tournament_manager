@@ -1,7 +1,6 @@
 package tournament
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -58,7 +57,6 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if errs := validation.ValidateStruct(t); len(errs) > 0 {
 		tournaments, err := h.service.List()
-		fmt.Println(errs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

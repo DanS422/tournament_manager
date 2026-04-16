@@ -5,6 +5,14 @@ import (
 	"errors"
 )
 
+type RepositoryInterface interface {
+	Add(t Tournament) (Tournament, error)
+	GetAll() ([]Tournament, error)
+	Show(id int) (Tournament, error)
+	Update(id int, t Tournament) error
+	Delete(id int) error
+}
+
 type Repository struct {
 	db *sql.DB
 }

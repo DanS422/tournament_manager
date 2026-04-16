@@ -1,9 +1,5 @@
 package tournament
 
-import (
-	"errors"
-)
-
 type ServiceInterface interface {
 	List() ([]Tournament, error)
 	Create(string, string) (Tournament, error)
@@ -13,17 +9,14 @@ type ServiceInterface interface {
 }
 
 type Service struct {
-	repo *Repository
+	repo RepositoryInterface
 }
 
-func NewService(repo *Repository) *Service {
+func NewService(repo RepositoryInterface) *Service {
 	return &Service{repo: repo}
 }
 
 func (s *Service) Create(name, location string) (Tournament, error) {
-	if name == "" {
-		return Tournament{}, errors.New("Name is required")
-	}
 	t, err := s.repo.Add(Tournament{Name: name, Location: location})
 	if err != nil {
 		return Tournament{}, err
@@ -47,10 +40,6 @@ func (s *Service) Show(id int) (Tournament, error) {
 }
 
 func (s *Service) Update(id int, name, location string) error {
-	if name == "" {
-		return errors.New("Name is required")
-	}
-
 	return s.repo.Update(id, Tournament{Name: name, Location: location})
 }
 

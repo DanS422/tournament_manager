@@ -37,7 +37,7 @@ func main() {
 	repo, err := tournament.NewRepository()
 
 	if err != nil {
-		panic("dtabase connection failed")
+		panic("database connection failed")
 	}
 	service := tournament.NewService(repo)
 	handler := tournament.NewHandler(service)
