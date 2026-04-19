@@ -3,10 +3,11 @@ package tournament
 import (
 	"html/template"
 	"net/http"
-	"strconv"
 	"strings"
 	tmpl "tournament_manager/internal/tmpl"
 	"tournament_manager/internal/validation"
+
+	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -91,10 +92,9 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ByIDHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/tournaments/")
-	id, err := strconv.Atoi(idStr)
+	id := strings.TrimPrefix(r.URL.Path, "/tournaments/")
 
-	if err != nil {
+	if _, err := uuid.Parse(id); err != nil {
 		http.Error(w, "Invalid ID", http.StatusNotFound)
 		return
 	}
@@ -111,7 +111,7 @@ func (h *Handler) ByIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id int) {
+func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id string) {
 	tournament, err := h.service.Show(id)
 
 	if err != nil {
@@ -128,7 +128,7 @@ func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id int) {
 	}
 }
 
-func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) {
+func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id string) {
 	t := Tournament{
 		ID:       id,
 		Name:     r.FormValue("name"),
@@ -156,7 +156,7 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, id int) {
+func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, id string) {
 	if err := h.service.Delete(id); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

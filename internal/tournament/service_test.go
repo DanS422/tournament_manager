@@ -8,9 +8,9 @@ import (
 type mockRepository struct {
 	AddFunc    func(t Tournament) (Tournament, error)
 	GetAllFunc func() ([]Tournament, error)
-	ShowFunc   func(id int) (Tournament, error)
-	UpdateFunc func(id int, t Tournament) error
-	DeleteFunc func(id int) error
+	ShowFunc   func(id string) (Tournament, error)
+	UpdateFunc func(id string, t Tournament) error
+	DeleteFunc func(id string) error
 }
 
 func (r *mockRepository) Add(t Tournament) (Tournament, error) {
@@ -21,15 +21,15 @@ func (r *mockRepository) GetAll() ([]Tournament, error) {
 	return r.GetAllFunc()
 }
 
-func (r *mockRepository) Show(id int) (Tournament, error) {
+func (r *mockRepository) Show(id string) (Tournament, error) {
 	return r.ShowFunc(id)
 }
 
-func (r *mockRepository) Update(id int, t Tournament) error {
+func (r *mockRepository) Update(id string, t Tournament) error {
 	return r.UpdateFunc(id, t)
 }
 
-func (r *mockRepository) Delete(id int) error {
+func (r *mockRepository) Delete(id string) error {
 	return r.DeleteFunc(id)
 }
 
@@ -37,9 +37,9 @@ func newMockRepository() *mockRepository {
 	return &mockRepository{
 		AddFunc:    func(t Tournament) (Tournament, error) { return Tournament{}, nil },
 		GetAllFunc: func() ([]Tournament, error) { return []Tournament{}, nil },
-		ShowFunc:   func(id int) (Tournament, error) { return Tournament{}, nil },
-		UpdateFunc: func(id int, t Tournament) error { return nil },
-		DeleteFunc: func(id int) error { return nil },
+		ShowFunc:   func(id string) (Tournament, error) { return Tournament{}, nil },
+		UpdateFunc: func(id string, t Tournament) error { return nil },
+		DeleteFunc: func(id string) error { return nil },
 	}
 }
 
@@ -130,7 +130,7 @@ func TestList_Success(t *testing.T) {
 func TestShow_Fail(t *testing.T) {
 	mock := newMockRepository()
 
-	mock.ShowFunc = func(id int) (Tournament, error) {
+	mock.ShowFunc = func(id string) (Tournament, error) {
 		return Tournament{}, errors.New("errors")
 	}
 
@@ -138,7 +138,7 @@ func TestShow_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.Show(1)
+	_, err := service.Show(testTournamentID)
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -149,7 +149,7 @@ func TestShow_Success(t *testing.T) {
 	mock := newMockRepository()
 
 	called := false
-	mock.ShowFunc = func(id int) (Tournament, error) {
+	mock.ShowFunc = func(id string) (Tournament, error) {
 		called = true
 		return Tournament{}, nil
 	}
@@ -158,7 +158,7 @@ func TestShow_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.Show(1)
+	_, err := service.Show(testTournamentID)
 
 	if err != nil {
 		t.Fatalf("expect no errors")
@@ -172,7 +172,7 @@ func TestShow_Success(t *testing.T) {
 func TestUpdate_Fail(t *testing.T) {
 	mock := newMockRepository()
 
-	mock.UpdateFunc = func(id int, t Tournament) error {
+	mock.UpdateFunc = func(id string, t Tournament) error {
 		return errors.New("errors")
 	}
 
@@ -180,7 +180,7 @@ func TestUpdate_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Update(1, "foo", "bar")
+	err := service.Update(testTournamentID, "foo", "bar")
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -191,7 +191,7 @@ func TestUpdate_Success(t *testing.T) {
 	mock := newMockRepository()
 
 	called := false
-	mock.UpdateFunc = func(id int, t Tournament) error {
+	mock.UpdateFunc = func(id string, t Tournament) error {
 		called = true
 		return nil
 	}
@@ -199,7 +199,7 @@ func TestUpdate_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Update(1, "foo", "bar")
+	err := service.Update(testTournamentID, "foo", "bar")
 
 	if err != nil {
 		t.Fatalf("expect no errors")
@@ -213,7 +213,7 @@ func TestUpdate_Success(t *testing.T) {
 func TestDelete_Fail(t *testing.T) {
 	mock := newMockRepository()
 
-	mock.DeleteFunc = func(id int) error {
+	mock.DeleteFunc = func(id string) error {
 		return errors.New("errors")
 	}
 
@@ -221,7 +221,7 @@ func TestDelete_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Delete(1)
+	err := service.Delete(testTournamentID)
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -232,7 +232,7 @@ func TestDelete_Success(t *testing.T) {
 	mock := newMockRepository()
 
 	called := false
-	mock.DeleteFunc = func(id int) error {
+	mock.DeleteFunc = func(id string) error {
 		called = true
 		return nil
 	}
@@ -240,7 +240,7 @@ func TestDelete_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Delete(1)
+	err := service.Delete(testTournamentID)
 
 	if err != nil {
 		t.Fatalf("expect no errors")

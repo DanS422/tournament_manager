@@ -3,9 +3,9 @@ package tournament
 type ServiceInterface interface {
 	List() ([]Tournament, error)
 	Create(string, string) (Tournament, error)
-	Show(int) (Tournament, error)
-	Update(int, string, string) error
-	Delete(int) error
+	Show(string) (Tournament, error)
+	Update(string, string, string) error
+	Delete(string) error
 }
 
 type Service struct {
@@ -35,14 +35,14 @@ func (s *Service) List() ([]Tournament, error) {
 	return tournaments, nil
 }
 
-func (s *Service) Show(id int) (Tournament, error) {
+func (s *Service) Show(id string) (Tournament, error) {
 	return s.repo.Show(id)
 }
 
-func (s *Service) Update(id int, name, location string) error {
+func (s *Service) Update(id string, name, location string) error {
 	return s.repo.Update(id, Tournament{Name: name, Location: location})
 }
 
-func (s *Service) Delete(id int) error {
+func (s *Service) Delete(id string) error {
 	return s.repo.Delete(id)
 }

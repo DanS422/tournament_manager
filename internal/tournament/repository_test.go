@@ -5,6 +5,11 @@ import (
 	"tournament_manager/internal/testutil"
 )
 
+const (
+	testTournamentID    = "11111111-1111-4111-8111-111111111111"
+	missingTournamentID = "22222222-2222-4222-8222-222222222222"
+)
+
 func TestRepository_Add(t *testing.T) {
 	repo := initialiseRepo(t)
 	tournament := Tournament{
@@ -18,7 +23,7 @@ func TestRepository_Add(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if created.ID == 0 {
+	if created.ID == "" {
 		t.Fatalf("Expected ID")
 	}
 }
@@ -57,7 +62,7 @@ func TestRepository_Show_Success(t *testing.T) {
 func TestRepository_Show_NotFound(t *testing.T) {
 	repo := initialiseRepo(t)
 
-	_, err := repo.Show(999)
+	_, err := repo.Show(missingTournamentID)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -91,7 +96,7 @@ func TestRepository_Update_Success(t *testing.T) {
 func TestRepository_Update_NotFound(t *testing.T) {
 	repo := initialiseRepo(t)
 
-	err := repo.Update(999, Tournament{Name: "X", Location: "Y"})
+	err := repo.Update(missingTournamentID, Tournament{Name: "X", Location: "Y"})
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -120,7 +125,7 @@ func TestRepository_Delete_Success(t *testing.T) {
 func TestRepository_Delete_NotFound(t *testing.T) {
 	repo := initialiseRepo(t)
 
-	err := repo.Delete(999)
+	err := repo.Delete(missingTournamentID)
 	if err == nil {
 		t.Fatal("expected error")
 	}

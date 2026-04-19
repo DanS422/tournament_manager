@@ -1,5 +1,5 @@
 CREATE TABLE tournaments (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     location TEXT NOT NULL
 );

@@ -12,9 +12,9 @@ import (
 type mockService struct {
 	ListFunc   func() ([]Tournament, error)
 	CreateFunc func(string, string) (Tournament, error)
-	ShowFunc   func(int) (Tournament, error)
-	UpdateFunc func(int, string, string) error
-	DeleteFunc func(int) error
+	ShowFunc   func(string) (Tournament, error)
+	UpdateFunc func(string, string, string) error
+	DeleteFunc func(string) error
 }
 
 func (m *mockService) List() ([]Tournament, error) {
@@ -25,15 +25,15 @@ func (m *mockService) Create(name, location string) (Tournament, error) {
 	return m.CreateFunc(name, location)
 }
 
-func (m *mockService) Show(id int) (Tournament, error) {
+func (m *mockService) Show(id string) (Tournament, error) {
 	return m.ShowFunc(id)
 }
 
-func (m *mockService) Update(id int, name, location string) error {
+func (m *mockService) Update(id string, name, location string) error {
 	return m.UpdateFunc(id, name, location)
 }
 
-func (m *mockService) Delete(id int) error {
+func (m *mockService) Delete(id string) error {
 	return m.DeleteFunc(id)
 }
 
@@ -57,9 +57,9 @@ func newMockService() *mockService {
 	return &mockService{
 		ListFunc:   func() ([]Tournament, error) { return nil, nil },
 		CreateFunc: func(string, string) (Tournament, error) { return Tournament{}, nil },
-		ShowFunc:   func(int) (Tournament, error) { return Tournament{}, nil },
-		UpdateFunc: func(int, string, string) error { return nil },
-		DeleteFunc: func(int) error { return nil },
+		ShowFunc:   func(string) (Tournament, error) { return Tournament{}, nil },
+		UpdateFunc: func(string, string, string) error { return nil },
+		DeleteFunc: func(string) error { return nil },
 	}
 }
 
@@ -226,7 +226,7 @@ func TestListHandler_UnknownPath(t *testing.T) {
 
 func TestByIDHandler_Fail(t *testing.T) {
 	mock := newMockService()
-	mock.ShowFunc = func(id int) (Tournament, error) {
+	mock.ShowFunc = func(id string) (Tournament, error) {
 		return Tournament{}, errors.New("errors")
 	}
 
@@ -235,7 +235,7 @@ func TestByIDHandler_Fail(t *testing.T) {
 		templates: fakeTemplates(),
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/tournaments/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/tournaments/"+testTournamentID, nil)
 	req.Header.Set("Content-Type", "application/html")
 	w := httptest.NewRecorder()
 	h.ByIDHandler(w, req)
@@ -248,7 +248,7 @@ func TestByIDHandler_Fail(t *testing.T) {
 func TestByIDHandler_Show_Sucess(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.ShowFunc = func(id int) (Tournament, error) {
+	mock.ShowFunc = func(id string) (Tournament, error) {
 		called = true
 		return Tournament{}, nil
 	}
@@ -258,7 +258,7 @@ func TestByIDHandler_Show_Sucess(t *testing.T) {
 		templates: fakeTemplates(),
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/tournaments/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/tournaments/"+testTournamentID, nil)
 	req.Header.Set("Content-Type", "application/html")
 	w := httptest.NewRecorder()
 	h.ByIDHandler(w, req)
@@ -275,7 +275,7 @@ func TestByIDHandler_Show_Sucess(t *testing.T) {
 func TestByIDHandler_Delete_Success(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.DeleteFunc = func(id int) error {
+	mock.DeleteFunc = func(id string) error {
 		called = true
 		return nil
 	}
@@ -285,7 +285,7 @@ func TestByIDHandler_Delete_Success(t *testing.T) {
 		templates: fakeTemplates(),
 	}
 
-	req := httptest.NewRequest(http.MethodDelete, "/tournaments/1", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/tournaments/"+testTournamentID, nil)
 	req.Header.Set("Content-Type", "application/html")
 
 	w := httptest.NewRecorder()
@@ -303,7 +303,7 @@ func TestByIDHandler_Delete_Success(t *testing.T) {
 func TestByIDHandler_Delete_Fail(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.DeleteFunc = func(id int) error {
+	mock.DeleteFunc = func(id string) error {
 		called = true
 		return errors.New("errors")
 	}
@@ -313,7 +313,7 @@ func TestByIDHandler_Delete_Fail(t *testing.T) {
 		templates: fakeTemplates(),
 	}
 
-	req := httptest.NewRequest(http.MethodDelete, "/tournaments/1", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/tournaments/"+testTournamentID, nil)
 	req.Header.Set("Content-Type", "application/html")
 
 	w := httptest.NewRecorder()
@@ -331,7 +331,7 @@ func TestByIDHandler_Delete_Fail(t *testing.T) {
 func TestByIDHandler_Update_Sucess(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.UpdateFunc = func(id int, name string, location string) error {
+	mock.UpdateFunc = func(id string, name string, location string) error {
 		called = true
 		return nil
 	}
@@ -342,7 +342,7 @@ func TestByIDHandler_Update_Sucess(t *testing.T) {
 	}
 
 	form := strings.NewReader("name=Test&location=SG")
-	req := httptest.NewRequest(http.MethodPatch, "/tournaments/1", form)
+	req := httptest.NewRequest(http.MethodPatch, "/tournaments/"+testTournamentID, form)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	w := httptest.NewRecorder()
@@ -360,7 +360,7 @@ func TestByIDHandler_Update_Sucess(t *testing.T) {
 func TestByIDHandler_Update_Fail(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.UpdateFunc = func(id int, name string, location string) error {
+	mock.UpdateFunc = func(id string, name string, location string) error {
 		called = true
 		return errors.New("error")
 	}
@@ -371,7 +371,7 @@ func TestByIDHandler_Update_Fail(t *testing.T) {
 	}
 
 	form := strings.NewReader("name=Test&location=SG")
-	req := httptest.NewRequest(http.MethodPatch, "/tournaments/1", form)
+	req := httptest.NewRequest(http.MethodPatch, "/tournaments/"+testTournamentID, form)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	w := httptest.NewRecorder()
