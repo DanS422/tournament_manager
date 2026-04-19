@@ -9,7 +9,7 @@ type mockRepository struct {
 	AddFunc    func(t Tournament) (Tournament, error)
 	GetAllFunc func() ([]Tournament, error)
 	ShowFunc   func(id string) (Tournament, error)
-	UpdateFunc func(id string, t Tournament) error
+	UpdateFunc func(t Tournament) error
 	DeleteFunc func(id string) error
 }
 
@@ -25,8 +25,8 @@ func (r *mockRepository) Show(id string) (Tournament, error) {
 	return r.ShowFunc(id)
 }
 
-func (r *mockRepository) Update(id string, t Tournament) error {
-	return r.UpdateFunc(id, t)
+func (r *mockRepository) Update(t Tournament) error {
+	return r.UpdateFunc(t)
 }
 
 func (r *mockRepository) Delete(id string) error {
@@ -38,7 +38,7 @@ func newMockRepository() *mockRepository {
 		AddFunc:    func(t Tournament) (Tournament, error) { return Tournament{}, nil },
 		GetAllFunc: func() ([]Tournament, error) { return []Tournament{}, nil },
 		ShowFunc:   func(id string) (Tournament, error) { return Tournament{}, nil },
-		UpdateFunc: func(id string, t Tournament) error { return nil },
+		UpdateFunc: func(t Tournament) error { return nil },
 		DeleteFunc: func(id string) error { return nil },
 	}
 }
@@ -54,7 +54,7 @@ func TestCreate_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.Create("foo", "bar")
+	_, err := service.Create(Tournament{Name: "foo", Location: "bar"})
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -74,7 +74,7 @@ func TestCreate_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.Create("foo", "bar")
+	_, err := service.Create(Tournament{Name: "foo", Location: "bar"})
 
 	if err != nil {
 		t.Fatalf("expect no errors")
@@ -172,7 +172,7 @@ func TestShow_Success(t *testing.T) {
 func TestUpdate_Fail(t *testing.T) {
 	mock := newMockRepository()
 
-	mock.UpdateFunc = func(id string, t Tournament) error {
+	mock.UpdateFunc = func(t Tournament) error {
 		return errors.New("errors")
 	}
 
@@ -180,7 +180,7 @@ func TestUpdate_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Update(testTournamentID, "foo", "bar")
+	err := service.Update(Tournament{ID: testTournamentID, Name: "foo", Location: "bar"})
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -191,7 +191,7 @@ func TestUpdate_Success(t *testing.T) {
 	mock := newMockRepository()
 
 	called := false
-	mock.UpdateFunc = func(id string, t Tournament) error {
+	mock.UpdateFunc = func(t Tournament) error {
 		called = true
 		return nil
 	}
@@ -199,7 +199,7 @@ func TestUpdate_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	err := service.Update(testTournamentID, "foo", "bar")
+	err := service.Update(Tournament{ID: testTournamentID, Name: "foo", Location: "bar"})
 
 	if err != nil {
 		t.Fatalf("expect no errors")

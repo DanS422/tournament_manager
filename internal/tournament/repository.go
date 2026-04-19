@@ -11,7 +11,7 @@ type RepositoryInterface interface {
 	Add(t Tournament) (Tournament, error)
 	GetAll() ([]Tournament, error)
 	Show(id string) (Tournament, error)
-	Update(id string, t Tournament) error
+	Update(t Tournament) error
 	Delete(id string) error
 }
 
@@ -28,8 +28,7 @@ func (r *Repository) Add(t Tournament) (Tournament, error) {
 
 	_, err := r.db.Exec(
 		"INSERT INTO tournaments (id, name, location) VALUES (?, ?, ?)",
-		t.ID,
-		t.Name, t.Location,
+		t.ID, t.Name, t.Location,
 	)
 
 	if err != nil {
@@ -43,7 +42,7 @@ func (r *Repository) GetAll() ([]Tournament, error) {
 	rows, err := r.db.Query("SELECT id, name, location FROM tournaments")
 
 	if err != nil {
-		return nil, err
+		return []Tournament{}, err
 	}
 
 	defer rows.Close()
@@ -52,13 +51,13 @@ func (r *Repository) GetAll() ([]Tournament, error) {
 	for rows.Next() {
 		var t Tournament
 		if err := rows.Scan(&t.ID, &t.Name, &t.Location); err != nil {
-			return nil, err
+			return []Tournament{}, err
 		}
 		list = append(list, t)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return []Tournament{}, err
 	}
 
 	return list, nil
@@ -79,12 +78,12 @@ func (r *Repository) Show(id string) (Tournament, error) {
 	return t, nil
 }
 
-func (r *Repository) Update(id string, t Tournament) error {
+func (r *Repository) Update(t Tournament) error {
 	result, err := r.db.Exec(
-		"UPDATE tournaments SET name = ?, location = ? where id = ?",
+		"UPDATE tournaments SET name = ?, location = ? WHERE id = ?",
 		t.Name,
 		t.Location,
-		id,
+		t.ID,
 	)
 
 	if err != nil {

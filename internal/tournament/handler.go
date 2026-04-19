@@ -83,7 +83,7 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	_, err := h.service.Create(t.Name, t.Location)
+	_, err := h.service.Create(t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -147,7 +147,7 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id strin
 		return
 	}
 
-	err := h.service.Update(id, t.Name, t.Location)
+	err := h.service.Update(t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

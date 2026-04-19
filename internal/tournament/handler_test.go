@@ -11,9 +11,9 @@ import (
 
 type mockService struct {
 	ListFunc   func() ([]Tournament, error)
-	CreateFunc func(string, string) (Tournament, error)
+	CreateFunc func(t Tournament) (Tournament, error)
 	ShowFunc   func(string) (Tournament, error)
-	UpdateFunc func(string, string, string) error
+	UpdateFunc func(t Tournament) error
 	DeleteFunc func(string) error
 }
 
@@ -21,16 +21,16 @@ func (m *mockService) List() ([]Tournament, error) {
 	return m.ListFunc()
 }
 
-func (m *mockService) Create(name, location string) (Tournament, error) {
-	return m.CreateFunc(name, location)
+func (m *mockService) Create(t Tournament) (Tournament, error) {
+	return m.CreateFunc(t)
 }
 
 func (m *mockService) Show(id string) (Tournament, error) {
 	return m.ShowFunc(id)
 }
 
-func (m *mockService) Update(id string, name, location string) error {
-	return m.UpdateFunc(id, name, location)
+func (m *mockService) Update(t Tournament) error {
+	return m.UpdateFunc(t)
 }
 
 func (m *mockService) Delete(id string) error {
@@ -56,9 +56,9 @@ func brokenTemplates() map[string]*template.Template {
 func newMockService() *mockService {
 	return &mockService{
 		ListFunc:   func() ([]Tournament, error) { return nil, nil },
-		CreateFunc: func(string, string) (Tournament, error) { return Tournament{}, nil },
+		CreateFunc: func(t Tournament) (Tournament, error) { return Tournament{}, nil },
 		ShowFunc:   func(string) (Tournament, error) { return Tournament{}, nil },
-		UpdateFunc: func(string, string, string) error { return nil },
+		UpdateFunc: func(t Tournament) error { return nil },
 		DeleteFunc: func(string) error { return nil },
 	}
 }
@@ -92,7 +92,7 @@ func TestCreateHandler_Success(t *testing.T) {
 	mock := newMockService()
 
 	called := false
-	mock.CreateFunc = func(name, location string) (Tournament, error) {
+	mock.CreateFunc = func(t Tournament) (Tournament, error) {
 		called = true
 		return Tournament{}, nil
 	}
@@ -331,7 +331,7 @@ func TestByIDHandler_Delete_Fail(t *testing.T) {
 func TestByIDHandler_Update_Sucess(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.UpdateFunc = func(id string, name string, location string) error {
+	mock.UpdateFunc = func(t Tournament) error {
 		called = true
 		return nil
 	}
@@ -360,7 +360,7 @@ func TestByIDHandler_Update_Sucess(t *testing.T) {
 func TestByIDHandler_Update_Fail(t *testing.T) {
 	mock := newMockService()
 	called := false
-	mock.UpdateFunc = func(id string, name string, location string) error {
+	mock.UpdateFunc = func(t Tournament) error {
 		called = true
 		return errors.New("error")
 	}

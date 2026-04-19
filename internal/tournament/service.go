@@ -2,9 +2,9 @@ package tournament
 
 type ServiceInterface interface {
 	List() ([]Tournament, error)
-	Create(string, string) (Tournament, error)
+	Create(t Tournament) (Tournament, error)
 	Show(string) (Tournament, error)
-	Update(string, string, string) error
+	Update(t Tournament) error
 	Delete(string) error
 }
 
@@ -16,8 +16,8 @@ func NewService(repo RepositoryInterface) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Create(name, location string) (Tournament, error) {
-	t, err := s.repo.Add(Tournament{Name: name, Location: location})
+func (s *Service) Create(t Tournament) (Tournament, error) {
+	t, err := s.repo.Add(t)
 	if err != nil {
 		return Tournament{}, err
 	}
@@ -39,8 +39,8 @@ func (s *Service) Show(id string) (Tournament, error) {
 	return s.repo.Show(id)
 }
 
-func (s *Service) Update(id string, name, location string) error {
-	return s.repo.Update(id, Tournament{Name: name, Location: location})
+func (s *Service) Update(t Tournament) error {
+	return s.repo.Update(t)
 }
 
 func (s *Service) Delete(id string) error {

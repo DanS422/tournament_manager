@@ -77,7 +77,8 @@ func TestRepository_Update_Success(t *testing.T) {
 
 	added, _ := repo.Add(Tournament{Name: "Old", Location: "SG"})
 
-	err := repo.Update(added.ID, Tournament{
+	err := repo.Update(Tournament{
+		ID:       added.ID,
 		Name:     "New",
 		Location: "MY",
 	})
@@ -96,7 +97,7 @@ func TestRepository_Update_Success(t *testing.T) {
 func TestRepository_Update_NotFound(t *testing.T) {
 	repo := initialiseRepo(t)
 
-	err := repo.Update(missingTournamentID, Tournament{Name: "X", Location: "Y"})
+	err := repo.Update(Tournament{ID: missingTournamentID, Name: "X", Location: "Y"})
 	if err == nil {
 		t.Fatal("expected error")
 	}
