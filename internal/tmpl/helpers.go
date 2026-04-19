@@ -1,6 +1,7 @@
 package tmpl
 
 import (
+	"bytes"
 	"html/template"
 	"net/http"
 
@@ -32,9 +33,13 @@ func FuncMap() template.FuncMap {
 	}
 }
 
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl *template.Template, data interface{}) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl *template.Template, data interface{}) error {
 	loc := GetLocalizer(r)
-	t, _ := tmpl.Clone()
+	t, err := tmpl.Clone()
+	if err != nil {
+		return err
+	}
+
 	t = t.Funcs(template.FuncMap{
 		"T": func(msgID string, data ...map[string]interface{}) string {
 			if loc == nil {
@@ -47,7 +52,13 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl *template.Templ
 			return str
 		},
 	})
-	t.ExecuteTemplate(w, "base.html", data)
+	var buf bytes.Buffer
+	if err := t.ExecuteTemplate(&buf, "base.html", data); err != nil {
+		return err
+	}
+
+	_, err = buf.WriteTo(w)
+	return err
 }
 
 func firstMap(data []map[string]interface{}) map[string]interface{} {

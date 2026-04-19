@@ -38,7 +38,15 @@ func (m *mockService) Delete(id int) error {
 }
 
 func fakeTemplates() map[string]*template.Template {
-	t := template.Must(template.New("test").Parse("OK"))
+	t := template.Must(template.New("test").Parse(`{{define "base.html"}}OK{{end}}`))
+	return map[string]*template.Template{
+		"tournaments": t,
+		"tournament":  t,
+	}
+}
+
+func brokenTemplates() map[string]*template.Template {
+	t := template.Must(template.New("test").Parse(`{{define "base.html"}}{{template "missing" .}}{{end}}`))
 	return map[string]*template.Template{
 		"tournaments": t,
 		"tournament":  t,
@@ -165,6 +173,54 @@ func TestListHandler_Fail(t *testing.T) {
 
 	if !called {
 		t.Fatalf("expected List to be called")
+	}
+}
+
+func TestListHandler_RenderFail(t *testing.T) {
+	mock := newMockService()
+	mock.ListFunc = func() ([]Tournament, error) {
+		return []Tournament{}, nil
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: brokenTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+
+	h.ListHandler(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", w.Code)
+	}
+}
+
+func TestListHandler_UnknownPath(t *testing.T) {
+	mock := newMockService()
+	called := false
+	mock.ListFunc = func() ([]Tournament, error) {
+		called = true
+		return []Tournament{}, nil
+	}
+
+	h := &Handler{
+		service:   mock,
+		templates: fakeTemplates(),
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/not-a-real-page", nil)
+	w := httptest.NewRecorder()
+
+	h.ListHandler(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", w.Code)
+	}
+
+	if called {
+		t.Fatalf("expected List not to be called")
 	}
 }
 

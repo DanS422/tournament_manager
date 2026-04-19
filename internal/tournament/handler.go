@@ -34,6 +34,11 @@ func NewHandler(s ServiceInterface) *Handler {
 }
 
 func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	tournaments, err := h.service.List()
 
 	if err != nil {
@@ -41,9 +46,13 @@ func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
+	err = tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
 		"Tournaments": tournaments,
 	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,10 +71,14 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
+		err = tmpl.RenderTemplate(w, r, h.templates["tournaments"], map[string]interface{}{
 			"Errors":      errs,
 			"Tournaments": tournaments,
 		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		return
 	}
@@ -103,18 +116,38 @@ func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id int) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
+	err = tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
 		"Tournament": tournament,
 	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id int) {
-	name := r.FormValue("name")
-	location := r.FormValue("location")
+	t := Tournament{
+		ID:       id,
+		Name:     r.FormValue("name"),
+		Location: r.FormValue("location"),
+	}
+	if errs := validation.ValidateStruct(t); len(errs) > 0 {
+		err := tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
+			"Errors":     errs,
+			"Tournament": t,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	err := h.service.Update(id, name, location)
+		return
+	}
+
+	err := h.service.Update(id, t.Name, t.Location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

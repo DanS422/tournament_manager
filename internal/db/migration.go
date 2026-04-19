@@ -1,50 +1,76 @@
 package db
 
 import (
-	"log"
-	"os"
+	"database/sql"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "modernc.org/sqlite"
 )
 
-func MigrateUp() {
-	m := newMigrate()
+func MigrateUp(db *sql.DB) error {
+	m, err := newMigrate(db)
+	if err != nil {
+		return err
+	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func MigrateDown() {
-	m := newMigrate()
+func MigrateDown(db *sql.DB) error {
+	m, err := newMigrate(db)
+	if err != nil {
+		return err
+	}
 
 	if err := m.Steps(-1); err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func MigrateReset() {
-	m := newMigrate()
+func MigrateReset(db *sql.DB) error {
+	m, err := newMigrate(db)
+	if err != nil {
+		return err
+	}
 
 	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func newMigrate() *migrate.Migrate {
-	wd, _ := os.Getwd()
+func newMigrate(db *sql.DB) (*migrate.Migrate, error) {
+	sourceDriver, err := iofs.New(migrationFS, "migrations")
 
-	m, err := migrate.New(
-		"file:///"+wd+"/migrations",
-		"sqlite://tournaments.db",
+	if err != nil {
+		return nil, err
+	}
+
+	dbDriver, err := sqlite.WithInstance(db, &sqlite.Config{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := migrate.NewWithInstance(
+		"iofs",
+		sourceDriver,
+		"sqlite",
+		dbDriver,
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return m
+	return m, nil
 }

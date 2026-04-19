@@ -56,13 +56,27 @@
       <!-- Name -->
       <div class="col-md-6">
         <label class="form-label">Name</label>
-        <input type="text" name="name" value="{{.Tournament.Name}}" class="form-control">
+        <input type="text" name="name" value='{{.Tournament.Name}}'
+          class="form-control {{if .Errors.name}}is-invalid{{end}}">
+
+        {{if .Errors.name}}
+        <div class="invalid-feedback">
+          {{.Errors.name}}
+        </div>
+        {{end}}
       </div>
 
       <!-- Location -->
       <div class="col-md-6">
         <label class="form-label">Location</label>
-        <input type="text" name="location" value="{{.Tournament.Location}}" class="form-control">
+        <input type="text" name="location" value='{{.Tournament.Location}}'
+          class="form-control {{if .Errors.location}}is-invalid{{end}}">
+
+        {{if .Errors.location}}
+        <div class="invalid-feedback">
+          {{.Errors.location}}
+        </div>
+        {{end}}
       </div>
 
       <!-- Submit -->

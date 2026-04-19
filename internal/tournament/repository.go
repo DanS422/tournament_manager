@@ -17,14 +17,8 @@ type Repository struct {
 	db *sql.DB
 }
 
-func NewRepository() (*Repository, error) {
-	db, err := sql.Open("sqlite", "tournaments.db")
-	if err != nil {
-		return nil, err
-	}
-
-	db.SetMaxIdleConns(1)
-	return &Repository{db: db}, nil
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
 func (r *Repository) Add(t Tournament) (Tournament, error) {
@@ -63,6 +57,10 @@ func (r *Repository) GetAll() ([]Tournament, error) {
 			return nil, err
 		}
 		list = append(list, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return list, nil
