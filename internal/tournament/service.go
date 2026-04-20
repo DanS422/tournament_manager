@@ -17,22 +17,11 @@ func NewService(repo RepositoryInterface) *Service {
 }
 
 func (s *Service) Create(t Tournament) (Tournament, error) {
-	t, err := s.repo.Add(t)
-	if err != nil {
-		return Tournament{}, err
-	}
-
-	return t, nil
+	return s.repo.Add(t)
 }
 
 func (s *Service) List() ([]Tournament, error) {
-	tournaments, err := s.repo.GetAll()
-
-	if err != nil {
-		return []Tournament{}, err
-	}
-
-	return tournaments, nil
+	return s.repo.GetAll()
 }
 
 func (s *Service) Show(id string) (Tournament, error) {
