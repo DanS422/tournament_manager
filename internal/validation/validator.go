@@ -33,6 +33,8 @@ func formErrors(s any, err error) map[string]string {
 		switch e.Tag() {
 		case "required":
 			out[field] = "is required"
+		case "oneof":
+			out[field] = "must be one of: " + e.Param()
 		default:
 			out[field] = "is invalid"
 		}
