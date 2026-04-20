@@ -9,6 +9,7 @@ import (
 	"tournament_manager/internal/db"
 	i18nhelper "tournament_manager/internal/i18n"
 	"tournament_manager/internal/middleware"
+	"tournament_manager/internal/player"
 	"tournament_manager/internal/tournament"
 
 	"github.com/BurntSushi/toml"
@@ -62,6 +63,13 @@ func main() {
 	tournamentService := tournament.NewService(tournamentRepo)
 	tournamentHandler := tournament.NewHandler(tournamentService)
 
+	playerRepo := player.NewRepository(dbConn)
+	playerService := player.NewService(playerRepo)
+	playerHandler := player.NewHandler(playerService, tournamentService)
+	tournamentHandler.SetPlayerListFunc(func(tournamentID string) (any, error) {
+		return playerService.List(tournamentID)
+	})
+
 	mux := http.NewServeMux()
 
 	// static files
@@ -70,7 +78,14 @@ func main() {
 
 	// routes
 	mux.HandleFunc("/", tournamentHandler.ListHandler)
-	mux.HandleFunc("/tournaments/", tournamentHandler.ByIDHandler)
+	mux.HandleFunc("/tournaments/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/players") {
+			playerHandler.ByTournamentHandler(w, r)
+			return
+		}
+
+		tournamentHandler.ByIDHandler(w, r)
+	})
 	mux.HandleFunc("/tournaments", tournamentHandler.CreateHandler)
 
 	// enrich logs by using gorilla handlers

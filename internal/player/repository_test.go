@@ -12,7 +12,6 @@ const (
 	FirstName       = "foo"
 	LastName        = "bar"
 	Gender          = "male"
-	Age             = 25
 )
 
 func TestRepository_Add(t *testing.T) {
@@ -31,7 +30,6 @@ func TestRepository_Add(t *testing.T) {
 		FirstName:    FirstName,
 		LastName:     LastName,
 		Gender:       Gender,
-		Age:          Age,
 		TournamentID: tour.ID,
 	}
 
@@ -45,7 +43,7 @@ func TestRepository_Add(t *testing.T) {
 		t.Fatalf("Expected ID")
 	}
 
-	if created.FirstName != FirstName || created.LastName != LastName || created.Gender != Gender || created.Age != Age {
+	if created.FirstName != FirstName || created.LastName != LastName || created.Gender != Gender {
 		t.Fatalf("Data are not stored properly")
 	}
 }
@@ -58,14 +56,12 @@ func TestRepository_GetAll(t *testing.T) {
 		FirstName:    "A",
 		LastName:     "Player",
 		Gender:       Gender,
-		Age:          20,
 		TournamentID: tour.ID,
 	})
 	_, _ = repo.Add(Player{
 		FirstName:    "B",
 		LastName:     "Player",
 		Gender:       Gender,
-		Age:          30,
 		TournamentID: tour.ID,
 	})
 
@@ -121,7 +117,6 @@ func TestRepository_Update_Success(t *testing.T) {
 		FirstName:    "baz",
 		LastName:     "qux",
 		Gender:       "female",
-		Age:          26,
 		TournamentID: tour.ID,
 	})
 	if err != nil {
@@ -133,7 +128,7 @@ func TestRepository_Update_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if updated.FirstName != "baz" || updated.LastName != "qux" || updated.Gender != "female" || updated.Age != 26 {
+	if updated.FirstName != "baz" || updated.LastName != "qux" || updated.Gender != "female" {
 		t.Fatalf("player was not updated properly: %+v", updated)
 	}
 }
@@ -146,7 +141,6 @@ func TestRepository_Update_NotFound(t *testing.T) {
 		FirstName: "baz",
 		LastName:  "qux",
 		Gender:    "female",
-		Age:       26,
 	})
 	if err == nil {
 		t.Fatal("expected error")
@@ -215,7 +209,6 @@ func createPlayer(t *testing.T, repo *Repository, tournamentID string) Player {
 		FirstName:    FirstName,
 		LastName:     LastName,
 		Gender:       Gender,
-		Age:          Age,
 		TournamentID: tournamentID,
 	})
 	if err != nil {

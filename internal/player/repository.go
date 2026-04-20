@@ -27,8 +27,8 @@ func (r *Repository) Add(p Player) (Player, error) {
 	p.ID = uuid.NewString()
 
 	_, err := r.db.Exec(
-		"INSERT INTO players (id, first_name, last_name, age, gender, tournament_id) VALUES (?, ?, ?, ?, ?, ?)",
-		p.ID, p.FirstName, p.LastName, p.Age, p.Gender, p.TournamentID,
+		"INSERT INTO players (id, first_name, last_name, gender, tournament_id) VALUES (?, ?, ?, ?, ?)",
+		p.ID, p.FirstName, p.LastName, p.Gender, p.TournamentID,
 	)
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (r *Repository) Add(p Player) (Player, error) {
 
 func (r *Repository) GetAll(tournamentID string) ([]Player, error) {
 	rows, err := r.db.Query(
-		"SELECT id, first_name, last_name, gender, age, tournament_id FROM players WHERE tournament_id = ?",
+		"SELECT id, first_name, last_name, gender, tournament_id FROM players WHERE tournament_id = ?",
 		tournamentID,
 	)
 
@@ -53,7 +53,7 @@ func (r *Repository) GetAll(tournamentID string) ([]Player, error) {
 	list := []Player{}
 	for rows.Next() {
 		var p Player
-		if err := rows.Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.Age, &p.TournamentID); err != nil {
+		if err := rows.Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.TournamentID); err != nil {
 			return []Player{}, err
 		}
 
@@ -71,9 +71,9 @@ func (r *Repository) Show(id string) (Player, error) {
 	var p Player
 
 	err := r.db.QueryRow(
-		"SELECT id, first_name, last_name, gender, age, tournament_id FROM players WHERE id = ?",
+		"SELECT id, first_name, last_name, gender, tournament_id FROM players WHERE id = ?",
 		id,
-	).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.Age, &p.TournamentID)
+	).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.TournamentID)
 
 	if err == sql.ErrNoRows {
 		return Player{}, errors.New("player not found")
@@ -88,8 +88,8 @@ func (r *Repository) Show(id string) (Player, error) {
 
 func (r *Repository) Update(p Player) error {
 	result, err := r.db.Exec(
-		"UPDATE players SET first_name = ?, last_name = ?, gender = ?, age = ? WHERE id = ?",
-		p.FirstName, p.LastName, p.Gender, p.Age, p.ID,
+		"UPDATE players SET first_name = ?, last_name = ?, gender = ? WHERE id = ?",
+		p.FirstName, p.LastName, p.Gender, p.ID,
 	)
 
 	if err != nil {
