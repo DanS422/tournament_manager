@@ -11,9 +11,8 @@ import (
 )
 
 type Handler struct {
-	service    ServiceInterface
-	templates  map[string]*template.Template
-	playerList func(tournamentID string) (any, error)
+	service   ServiceInterface
+	templates map[string]*template.Template
 }
 
 func NewHandler(s ServiceInterface) *Handler {
@@ -33,10 +32,6 @@ func NewHandler(s ServiceInterface) *Handler {
 		service:   s,
 		templates: t,
 	}
-}
-
-func (h *Handler) SetPlayerListFunc(fn func(tournamentID string) (any, error)) {
-	h.playerList = fn
 }
 
 func (h *Handler) ListHandler(w http.ResponseWriter, r *http.Request) {
@@ -124,16 +119,8 @@ func (h *Handler) showHandler(w http.ResponseWriter, r *http.Request, id string)
 		return
 	}
 
-	players, err := h.playersFor(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	err = tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
-		"Player":     map[string]string{},
 		"Tournament": tournament,
-		"Players":    players,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -148,16 +135,8 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, id strin
 		Location: r.FormValue("location"),
 	}
 	if errs := validation.ValidateStruct(t); len(errs) > 0 {
-		players, err := h.playersFor(id)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		err = tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
+		err := tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
 			"Errors":     errs,
-			"Player":     map[string]string{},
-			"Players":    players,
 			"Tournament": t,
 		})
 		if err != nil {
@@ -184,12 +163,4 @@ func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, id strin
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (h *Handler) playersFor(tournamentID string) (any, error) {
-	if h.playerList == nil {
-		return []any{}, nil
-	}
-
-	return h.playerList(tournamentID)
 }

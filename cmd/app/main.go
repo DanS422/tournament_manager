@@ -65,10 +65,7 @@ func main() {
 
 	playerRepo := player.NewRepository(dbConn)
 	playerService := player.NewService(playerRepo)
-	playerHandler := player.NewHandler(playerService, tournamentService)
-	tournamentHandler.SetPlayerListFunc(func(tournamentID string) (any, error) {
-		return playerService.List(tournamentID)
-	})
+	playerHandler := player.NewHandler(playerService)
 
 	mux := http.NewServeMux()
 
@@ -79,14 +76,11 @@ func main() {
 	// routes
 	mux.HandleFunc("/", tournamentHandler.ListHandler)
 	mux.HandleFunc("/tournaments/", func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.URL.Path, "/players") {
-			playerHandler.ByTournamentHandler(w, r)
-			return
-		}
-
 		tournamentHandler.ByIDHandler(w, r)
 	})
 	mux.HandleFunc("/tournaments", tournamentHandler.CreateHandler)
+	mux.HandleFunc("/players", playerHandler.PlayersHandler)
+	mux.HandleFunc("/players/", playerHandler.PlayersHandler)
 
 	// enrich logs by using gorilla handlers
 	loggedMux := handlers.LoggingHandler(os.Stdout, mux)

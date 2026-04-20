@@ -5,51 +5,39 @@ import (
 	"net/http"
 	"strings"
 	tmpl "tournament_manager/internal/tmpl"
-	"tournament_manager/internal/tournament"
 	"tournament_manager/internal/validation"
 
 	"github.com/google/uuid"
 )
 
-type TournamentService interface {
-	Show(id string) (tournament.Tournament, error)
-}
-
 type Handler struct {
-	service           ServiceInterface
-	tournamentService TournamentService
-	templates         map[string]*template.Template
+	service   ServiceInterface
+	templates map[string]*template.Template
 }
 
-func NewHandler(s ServiceInterface, ts TournamentService) *Handler {
+func NewHandler(s ServiceInterface) *Handler {
 	t := make(map[string]*template.Template)
-	t["tournament"] = template.Must(template.New("").
+	t["players"] = template.Must(template.New("").
 		Funcs(tmpl.FuncMap()).
 		ParseFiles(
 			"templates/base.html",
-			"templates/tournament.html",
+			"templates/players.html",
 		))
 
 	return &Handler{
-		service:           s,
-		tournamentService: ts,
-		templates:         t,
+		service:   s,
+		templates: t,
 	}
 }
 
-func (h *Handler) ByTournamentHandler(w http.ResponseWriter, r *http.Request) {
-	tournamentID, playerID, ok := parsePlayerPath(r.URL.Path)
+func (h *Handler) PlayersHandler(w http.ResponseWriter, r *http.Request) {
+	playerID, hasID, ok := parsePlayerPath(r.URL.Path)
 	if !ok {
 		http.NotFound(w, r)
 		return
 	}
 
-	if _, err := uuid.Parse(tournamentID); err != nil {
-		http.Error(w, "Invalid tournament ID", http.StatusNotFound)
-		return
-	}
-
-	if playerID != "" {
+	if hasID {
 		if _, err := uuid.Parse(playerID); err != nil {
 			http.Error(w, "Invalid player ID", http.StatusNotFound)
 			return
@@ -57,33 +45,43 @@ func (h *Handler) ByTournamentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
+	case http.MethodGet:
+		if hasID {
+			http.NotFound(w, r)
+			return
+		}
+		h.listHandler(w, r)
 	case http.MethodPost:
-		if playerID != "" {
+		if hasID {
 			http.NotFound(w, r)
 			return
 		}
-		h.createHandler(w, r, tournamentID)
+		h.createHandler(w, r)
 	case http.MethodPatch, http.MethodPut:
-		if playerID == "" {
+		if !hasID {
 			http.NotFound(w, r)
 			return
 		}
-		h.updateHandler(w, r, tournamentID, playerID)
+		h.updateHandler(w, r, playerID)
 	case http.MethodDelete:
-		if playerID == "" {
+		if !hasID {
 			http.NotFound(w, r)
 			return
 		}
-		h.deleteHandler(w, r, tournamentID, playerID)
+		h.deleteHandler(w, r, playerID)
 	default:
 		http.Error(w, "request method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func (h *Handler) createHandler(w http.ResponseWriter, r *http.Request, tournamentID string) {
-	p, errs := playerFromRequest(r, tournamentID, "")
+func (h *Handler) listHandler(w http.ResponseWriter, r *http.Request) {
+	h.renderPlayers(w, r, Player{}, nil)
+}
+
+func (h *Handler) createHandler(w http.ResponseWriter, r *http.Request) {
+	p, errs := playerFromRequest(r, "")
 	if len(errs) > 0 {
-		h.renderTournament(w, r, tournamentID, p, errs)
+		h.renderPlayers(w, r, p, errs)
 		return
 	}
 
@@ -92,13 +90,13 @@ func (h *Handler) createHandler(w http.ResponseWriter, r *http.Request, tourname
 		return
 	}
 
-	http.Redirect(w, r, "/tournaments/"+tournamentID, http.StatusSeeOther)
+	http.Redirect(w, r, "/players", http.StatusSeeOther)
 }
 
-func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, tournamentID, playerID string) {
-	p, errs := playerFromRequest(r, tournamentID, playerID)
+func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, playerID string) {
+	p, errs := playerFromRequest(r, playerID)
 	if len(errs) > 0 {
-		h.renderTournament(w, r, tournamentID, p, errs)
+		h.renderPlayers(w, r, p, errs)
 		return
 	}
 
@@ -107,49 +105,41 @@ func (h *Handler) updateHandler(w http.ResponseWriter, r *http.Request, tourname
 		return
 	}
 
-	http.Redirect(w, r, "/tournaments/"+tournamentID, http.StatusSeeOther)
+	http.Redirect(w, r, "/players", http.StatusSeeOther)
 }
 
-func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, tournamentID, playerID string) {
+func (h *Handler) deleteHandler(w http.ResponseWriter, r *http.Request, playerID string) {
 	if err := h.service.Delete(playerID); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/tournaments/"+tournamentID, http.StatusSeeOther)
+	http.Redirect(w, r, "/players", http.StatusSeeOther)
 }
 
-func (h *Handler) renderTournament(w http.ResponseWriter, r *http.Request, tournamentID string, p Player, errs map[string]string) {
-	tour, err := h.tournamentService.Show(tournamentID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	players, err := h.service.List(tournamentID)
+func (h *Handler) renderPlayers(w http.ResponseWriter, r *http.Request, p Player, errs map[string]string) {
+	players, err := h.service.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = tmpl.RenderTemplate(w, r, h.templates["tournament"], map[string]interface{}{
-		"Errors":     errs,
-		"Player":     p,
-		"Players":    players,
-		"Tournament": tour,
+	err = tmpl.RenderTemplate(w, r, h.templates["players"], map[string]interface{}{
+		"Errors":  errs,
+		"Player":  p,
+		"Players": players,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func playerFromRequest(r *http.Request, tournamentID, playerID string) (Player, map[string]string) {
+func playerFromRequest(r *http.Request, playerID string) (Player, map[string]string) {
 	p := Player{
-		ID:           playerID,
-		FirstName:    r.FormValue("first_name"),
-		LastName:     r.FormValue("last_name"),
-		Gender:       r.FormValue("gender"),
-		TournamentID: tournamentID,
+		ID:        playerID,
+		FirstName: r.FormValue("first_name"),
+		LastName:  r.FormValue("last_name"),
+		Gender:    r.FormValue("gender"),
 	}
 
 	errs := map[string]string{}
@@ -160,17 +150,15 @@ func playerFromRequest(r *http.Request, tournamentID, playerID string) (Player, 
 	return p, errs
 }
 
-func parsePlayerPath(path string) (string, string, bool) {
-	rest := strings.TrimPrefix(path, "/tournaments/")
-	parts := strings.Split(rest, "/")
-
-	if len(parts) == 2 && parts[1] == "players" {
-		return parts[0], "", parts[0] != ""
+func parsePlayerPath(path string) (string, bool, bool) {
+	if path == "/players" {
+		return "", false, true
 	}
 
-	if len(parts) == 3 && parts[1] == "players" {
-		return parts[0], parts[2], parts[0] != "" && parts[2] != ""
+	rest := strings.TrimPrefix(path, "/players/")
+	if rest == path || rest == "" || strings.Contains(rest, "/") {
+		return "", false, false
 	}
 
-	return "", "", false
+	return rest, true, true
 }

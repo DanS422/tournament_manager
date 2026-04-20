@@ -9,7 +9,7 @@ import (
 
 type RepositoryInterface interface {
 	Add(p Player) (Player, error)
-	GetAll(tournamentID string) ([]Player, error)
+	GetAll() ([]Player, error)
 	Show(id string) (Player, error)
 	Update(p Player) error
 	Delete(id string) error
@@ -27,8 +27,8 @@ func (r *Repository) Add(p Player) (Player, error) {
 	p.ID = uuid.NewString()
 
 	_, err := r.db.Exec(
-		"INSERT INTO players (id, first_name, last_name, gender, tournament_id) VALUES (?, ?, ?, ?, ?)",
-		p.ID, p.FirstName, p.LastName, p.Gender, p.TournamentID,
+		"INSERT INTO players (id, first_name, last_name, gender) VALUES (?, ?, ?, ?)",
+		p.ID, p.FirstName, p.LastName, p.Gender,
 	)
 
 	if err != nil {
@@ -38,10 +38,9 @@ func (r *Repository) Add(p Player) (Player, error) {
 	return p, nil
 }
 
-func (r *Repository) GetAll(tournamentID string) ([]Player, error) {
+func (r *Repository) GetAll() ([]Player, error) {
 	rows, err := r.db.Query(
-		"SELECT id, first_name, last_name, gender, tournament_id FROM players WHERE tournament_id = ?",
-		tournamentID,
+		"SELECT id, first_name, last_name, gender FROM players ORDER BY last_name, first_name",
 	)
 
 	if err != nil {
@@ -53,7 +52,7 @@ func (r *Repository) GetAll(tournamentID string) ([]Player, error) {
 	list := []Player{}
 	for rows.Next() {
 		var p Player
-		if err := rows.Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.TournamentID); err != nil {
+		if err := rows.Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender); err != nil {
 			return []Player{}, err
 		}
 
@@ -71,9 +70,9 @@ func (r *Repository) Show(id string) (Player, error) {
 	var p Player
 
 	err := r.db.QueryRow(
-		"SELECT id, first_name, last_name, gender, tournament_id FROM players WHERE id = ?",
+		"SELECT id, first_name, last_name, gender FROM players WHERE id = ?",
 		id,
-	).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender, &p.TournamentID)
+	).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender)
 
 	if err == sql.ErrNoRows {
 		return Player{}, errors.New("player not found")

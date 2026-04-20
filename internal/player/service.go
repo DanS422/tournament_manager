@@ -2,7 +2,7 @@ package player
 
 type ServiceInterface interface {
 	Create(p Player) (Player, error)
-	List(tournamentID string) ([]Player, error)
+	List() ([]Player, error)
 	Show(id string) (Player, error)
 	Update(p Player) error
 	Delete(id string) error
@@ -20,8 +20,8 @@ func (s *Service) Create(p Player) (Player, error) {
 	return s.repo.Add(p)
 }
 
-func (s *Service) List(tournamentID string) ([]Player, error) {
-	return s.repo.GetAll(tournamentID)
+func (s *Service) List() ([]Player, error) {
+	return s.repo.GetAll()
 }
 
 func (s *Service) Show(id string) (Player, error) {

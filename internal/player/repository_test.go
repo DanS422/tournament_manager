@@ -3,7 +3,6 @@ package player
 import (
 	"testing"
 	"tournament_manager/internal/testutil"
-	tournament "tournament_manager/internal/tournament"
 )
 
 const (
@@ -15,22 +14,12 @@ const (
 )
 
 func TestRepository_Add(t *testing.T) {
-	repo, tournamentRepo := initialiseRepo(t)
-
-	tour, err := tournamentRepo.Add(tournament.Tournament{
-		Name:     "Tournament",
-		Location: "Berlin",
-	})
-
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-	}
+	repo := initialiseRepo(t)
 
 	p := Player{
-		FirstName:    FirstName,
-		LastName:     LastName,
-		Gender:       Gender,
-		TournamentID: tour.ID,
+		FirstName: FirstName,
+		LastName:  LastName,
+		Gender:    Gender,
 	}
 
 	created, err := repo.Add(p)
@@ -49,23 +38,20 @@ func TestRepository_Add(t *testing.T) {
 }
 
 func TestRepository_GetAll(t *testing.T) {
-	repo, tournamentRepo := initialiseRepo(t)
-	tour := createTournament(t, tournamentRepo)
+	repo := initialiseRepo(t)
 
 	_, _ = repo.Add(Player{
-		FirstName:    "A",
-		LastName:     "Player",
-		Gender:       Gender,
-		TournamentID: tour.ID,
+		FirstName: "A",
+		LastName:  "Player",
+		Gender:    Gender,
 	})
 	_, _ = repo.Add(Player{
-		FirstName:    "B",
-		LastName:     "Player",
-		Gender:       Gender,
-		TournamentID: tour.ID,
+		FirstName: "B",
+		LastName:  "Player",
+		Gender:    Gender,
 	})
 
-	list, err := repo.GetAll(tour.ID)
+	list, err := repo.GetAll()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -76,9 +62,8 @@ func TestRepository_GetAll(t *testing.T) {
 }
 
 func TestRepository_Show_Success(t *testing.T) {
-	repo, tournamentRepo := initialiseRepo(t)
-	tour := createTournament(t, tournamentRepo)
-	added := createPlayer(t, repo, tour.ID)
+	repo := initialiseRepo(t)
+	added := createPlayer(t, repo)
 
 	got, err := repo.Show(added.ID)
 	if err != nil {
@@ -89,13 +74,10 @@ func TestRepository_Show_Success(t *testing.T) {
 		t.Fatalf("expected %s, got %s", FirstName, got.FirstName)
 	}
 
-	if got.TournamentID != tour.ID {
-		t.Fatalf("expected tournament ID %s, got %s", tour.ID, got.TournamentID)
-	}
 }
 
 func TestRepository_Show_NotFound(t *testing.T) {
-	repo, _ := initialiseRepo(t)
+	repo := initialiseRepo(t)
 
 	_, err := repo.Show(missingPlayerID)
 	if err == nil {
@@ -108,16 +90,14 @@ func TestRepository_Show_NotFound(t *testing.T) {
 }
 
 func TestRepository_Update_Success(t *testing.T) {
-	repo, tournamentRepo := initialiseRepo(t)
-	tour := createTournament(t, tournamentRepo)
-	added := createPlayer(t, repo, tour.ID)
+	repo := initialiseRepo(t)
+	added := createPlayer(t, repo)
 
 	err := repo.Update(Player{
-		ID:           added.ID,
-		FirstName:    "baz",
-		LastName:     "qux",
-		Gender:       "female",
-		TournamentID: tour.ID,
+		ID:        added.ID,
+		FirstName: "baz",
+		LastName:  "qux",
+		Gender:    "female",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -134,7 +114,7 @@ func TestRepository_Update_Success(t *testing.T) {
 }
 
 func TestRepository_Update_NotFound(t *testing.T) {
-	repo, _ := initialiseRepo(t)
+	repo := initialiseRepo(t)
 
 	err := repo.Update(Player{
 		ID:        missingPlayerID,
@@ -152,9 +132,8 @@ func TestRepository_Update_NotFound(t *testing.T) {
 }
 
 func TestRepository_Delete_Success(t *testing.T) {
-	repo, tournamentRepo := initialiseRepo(t)
-	tour := createTournament(t, tournamentRepo)
-	added := createPlayer(t, repo, tour.ID)
+	repo := initialiseRepo(t)
+	added := createPlayer(t, repo)
 
 	err := repo.Delete(added.ID)
 	if err != nil {
@@ -168,7 +147,7 @@ func TestRepository_Delete_Success(t *testing.T) {
 }
 
 func TestRepository_Delete_NotFound(t *testing.T) {
-	repo, _ := initialiseRepo(t)
+	repo := initialiseRepo(t)
 
 	err := repo.Delete(missingPlayerID)
 	if err == nil {
@@ -180,36 +159,20 @@ func TestRepository_Delete_NotFound(t *testing.T) {
 	}
 }
 
-func initialiseRepo(t *testing.T) (*Repository, *tournament.Repository) {
+func initialiseRepo(t *testing.T) *Repository {
 	dbConn := testutil.SetupTestRepo(t)
 
 	repo := NewRepository(dbConn)
-	tournamentRepo := tournament.NewRepository(dbConn)
-	return repo, tournamentRepo
+	return repo
 }
 
-func createTournament(t *testing.T, repo *tournament.Repository) tournament.Tournament {
-	t.Helper()
-
-	tour, err := repo.Add(tournament.Tournament{
-		Name:     "Tournament",
-		Location: "Berlin",
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	return tour
-}
-
-func createPlayer(t *testing.T, repo *Repository, tournamentID string) Player {
+func createPlayer(t *testing.T, repo *Repository) Player {
 	t.Helper()
 
 	p, err := repo.Add(Player{
-		FirstName:    FirstName,
-		LastName:     LastName,
-		Gender:       Gender,
-		TournamentID: tournamentID,
+		FirstName: FirstName,
+		LastName:  LastName,
+		Gender:    Gender,
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

@@ -5,11 +5,9 @@ import (
 	"testing"
 )
 
-const testTournamentID = "33333333-3333-4333-8333-333333333333"
-
 type mockRepository struct {
 	AddFunc    func(p Player) (Player, error)
-	GetAllFunc func(tournamentID string) ([]Player, error)
+	GetAllFunc func() ([]Player, error)
 	ShowFunc   func(id string) (Player, error)
 	UpdateFunc func(p Player) error
 	DeleteFunc func(id string) error
@@ -19,8 +17,8 @@ func (r *mockRepository) Add(p Player) (Player, error) {
 	return r.AddFunc(p)
 }
 
-func (r *mockRepository) GetAll(tournamentID string) ([]Player, error) {
-	return r.GetAllFunc(tournamentID)
+func (r *mockRepository) GetAll() ([]Player, error) {
+	return r.GetAllFunc()
 }
 
 func (r *mockRepository) Show(id string) (Player, error) {
@@ -38,7 +36,7 @@ func (r *mockRepository) Delete(id string) error {
 func newMockRepository() *mockRepository {
 	return &mockRepository{
 		AddFunc:    func(p Player) (Player, error) { return Player{}, nil },
-		GetAllFunc: func(tournamentID string) ([]Player, error) { return []Player{}, nil },
+		GetAllFunc: func() ([]Player, error) { return []Player{}, nil },
 		ShowFunc:   func(id string) (Player, error) { return Player{}, nil },
 		UpdateFunc: func(p Player) error { return nil },
 		DeleteFunc: func(id string) error { return nil },
@@ -90,7 +88,7 @@ func TestCreate_Success(t *testing.T) {
 func TestList_Fail(t *testing.T) {
 	mock := newMockRepository()
 
-	mock.GetAllFunc = func(tournamentID string) ([]Player, error) {
+	mock.GetAllFunc = func() ([]Player, error) {
 		return []Player{}, errors.New("errors")
 	}
 
@@ -98,7 +96,7 @@ func TestList_Fail(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.List(testTournamentID)
+	_, err := service.List()
 
 	if err == nil {
 		t.Fatalf("expect to error out")
@@ -109,7 +107,7 @@ func TestList_Success(t *testing.T) {
 	mock := newMockRepository()
 
 	called := false
-	mock.GetAllFunc = func(tournamentID string) ([]Player, error) {
+	mock.GetAllFunc = func() ([]Player, error) {
 		called = true
 		return []Player{}, nil
 	}
@@ -118,7 +116,7 @@ func TestList_Success(t *testing.T) {
 		repo: mock,
 	}
 
-	_, err := service.List(testTournamentID)
+	_, err := service.List()
 
 	if err != nil {
 		t.Fatalf("expect no errors")
