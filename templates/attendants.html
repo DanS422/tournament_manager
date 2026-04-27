@@ -1,0 +1,68 @@
+{{define "attendants.html"}}
+{{template "base.html"}}
+{{end}}
+
+{{define "content"}}
+
+<h3 class="mt-4">Attendants</h3>
+
+<table class="table table-striped">
+  <thead>
+    <th>#</th>
+    <th>Name</th>
+    <th>Gender</th>
+    <th></th>
+    <th></th>
+  </thead>
+  <tbody>
+    {{range $i, $attendant := .Attendants}}
+    <tr>
+      <td>{{add $i 1}}</td>
+      <td>{{$attendant.FullName}}</td>
+      <td>{{$attendant.Gender}}</td>
+      <td>
+        <form method="POST" action="/tournaments/{{$.TournamentID}}/attendants/{{$attendant.ID}}">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </td>
+      <td>
+        <a href="/tournaments/{{$.TournamentID}}/attendants/{{$attendant.ID}}" class="btn btn-info">Detail</a>
+      </td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+
+<h3 class="mt-4">Players</h3>
+<table class="table table-striped">
+  <thead>
+    <th>#</th>
+    <th>Name</th>
+    <th>Gender</th>
+    <th></th>
+  </thead>
+  <tbody>
+    {{range $i, $player := .Players}}
+    {{$isAttending := index $.AttendingMap $player.ID}}
+    <tr>
+      <td>{{add $i 1}}</td>
+      <td>{{$player.FullName}}</td>
+      <td>{{$player.Gender}}</td>
+      <td>
+        <form method="POST" action="/tournaments/{{$.TournamentID}}/attendants">
+          <input type="hidden" name="player_id" value="{{$player.ID}}">
+          {{ if not $isAttending}}
+          <button type="submit" class="btn btn-primary">Add</button>
+          {{else}}
+            <button type="submit" class="btn btn-secondary" disabled>Add</button>
+            {{end}}
+        </form>
+      </td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+</div>
+
+{{end}}

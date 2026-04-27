@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"tournament_manager/config"
+	"tournament_manager/internal/attendant"
 	"tournament_manager/internal/db"
 	i18nhelper "tournament_manager/internal/i18n"
 	"tournament_manager/internal/middleware"
@@ -67,6 +68,10 @@ func main() {
 	playerService := player.NewService(playerRepo)
 	playerHandler := player.NewHandler(playerService)
 
+	attendantRepo := attendant.NewRepository(dbConn)
+	attendantService := attendant.NewService(attendantRepo)
+	attendantHandler := attendant.NewHandler(attendantService)
+
 	mux := http.NewServeMux()
 
 	// static files
@@ -75,6 +80,13 @@ func main() {
 
 	// routes
 	mux.HandleFunc("/", tournamentHandler.ListHandler)
+	mux.HandleFunc("GET /tournaments/{tournament_id}/attendants", func(w http.ResponseWriter, r *http.Request) {
+		attendantHandler.ListHandler(w, r, playerService)
+	})
+	mux.HandleFunc("POST /tournaments/{tournament_id}/attendants", attendantHandler.CreateHandler)
+	mux.HandleFunc("DELETE /tournaments/{tournament_id}/attendants/{attendant_id}", attendantHandler.DeleteHandler)
+	mux.HandleFunc("GET /tournaments/{tournament_id}/attendants/{attendant_id}", attendantHandler.ShowHandler)
+
 	mux.HandleFunc("/tournaments/", func(w http.ResponseWriter, r *http.Request) {
 		tournamentHandler.ByIDHandler(w, r)
 	})

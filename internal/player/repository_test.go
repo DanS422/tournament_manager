@@ -144,6 +144,16 @@ func TestRepository_Delete_Success(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected not found after delete")
 	}
+
+	var count int
+	err = repo.db.QueryRow("SELECT COUNT(*) FROM players WHERE id = ? AND deleted_at IS NOT NULL", added.ID).Scan(&count)
+	if err != nil {
+		t.Fatalf("unexpected error checking soft-deleted player: %v", err)
+	}
+
+	if count != 1 {
+		t.Fatalf("expected player row to remain soft-deleted, got %d rows", count)
+	}
 }
 
 func TestRepository_Delete_NotFound(t *testing.T) {

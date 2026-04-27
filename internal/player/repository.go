@@ -40,7 +40,7 @@ func (r *Repository) Add(p Player) (Player, error) {
 
 func (r *Repository) GetAll() ([]Player, error) {
 	rows, err := r.db.Query(
-		"SELECT id, first_name, last_name, gender FROM players ORDER BY last_name, first_name",
+		"SELECT id, first_name, last_name, gender FROM players WHERE deleted_at IS NULL ORDER BY last_name, first_name",
 	)
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *Repository) Show(id string) (Player, error) {
 	var p Player
 
 	err := r.db.QueryRow(
-		"SELECT id, first_name, last_name, gender FROM players WHERE id = ?",
+		"SELECT id, first_name, last_name, gender FROM players WHERE id = ? AND deleted_at IS NULL",
 		id,
 	).Scan(&p.ID, &p.FirstName, &p.LastName, &p.Gender)
 
@@ -87,7 +87,7 @@ func (r *Repository) Show(id string) (Player, error) {
 
 func (r *Repository) Update(p Player) error {
 	result, err := r.db.Exec(
-		"UPDATE players SET first_name = ?, last_name = ?, gender = ? WHERE id = ?",
+		"UPDATE players SET first_name = ?, last_name = ?, gender = ? WHERE id = ? AND deleted_at IS NULL",
 		p.FirstName, p.LastName, p.Gender, p.ID,
 	)
 
@@ -110,7 +110,7 @@ func (r *Repository) Update(p Player) error {
 
 func (r *Repository) Delete(id string) error {
 	result, err := r.db.Exec(
-		"DELETE FROM players WHERE id = ?",
+		"UPDATE players SET deleted_at = datetime('now') WHERE id = ? AND deleted_at IS NULL",
 		id,
 	)
 	if err != nil {

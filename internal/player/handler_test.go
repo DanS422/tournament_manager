@@ -80,7 +80,7 @@ func TestListHandler_Success(t *testing.T) {
 	}
 
 	if !called {
-		t.Fatalf("expected List to be called")
+		t.Fatal("expected List to be called")
 	}
 }
 

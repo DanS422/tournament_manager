@@ -46,6 +46,7 @@ func (h *Handler) PlayersHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
+		// TODO: miss show, do we need it?
 		if hasID {
 			http.NotFound(w, r)
 			return

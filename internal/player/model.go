@@ -6,3 +6,7 @@ type Player struct {
 	FirstName string `json:"first_name" validate:"required"`
 	LastName  string `json:"last_name" validate:"required"`
 }
+
+func (p *Player) FullName() string {
+	return p.LastName + ", " + p.FirstName
+}
