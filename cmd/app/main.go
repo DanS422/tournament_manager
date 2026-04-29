@@ -8,6 +8,7 @@ import (
 	"tournament_manager/config"
 	"tournament_manager/internal/attendant"
 	"tournament_manager/internal/db"
+	"tournament_manager/internal/discipline"
 	i18nhelper "tournament_manager/internal/i18n"
 	"tournament_manager/internal/middleware"
 	"tournament_manager/internal/player"
@@ -72,6 +73,10 @@ func main() {
 	attendantService := attendant.NewService(attendantRepo)
 	attendantHandler := attendant.NewHandler(attendantService)
 
+	disciplineRepo := discipline.NewRepository(dbConn)
+	disciplineService := discipline.NewService(disciplineRepo)
+	disciplineHandler := discipline.NewHandler(disciplineService)
+
 	mux := http.NewServeMux()
 
 	// static files
@@ -79,7 +84,15 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// routes
+
+	// Tournaments
 	mux.HandleFunc("/", tournamentHandler.ListHandler)
+	mux.HandleFunc("/tournaments", tournamentHandler.CreateHandler)
+	mux.HandleFunc("/tournaments/", func(w http.ResponseWriter, r *http.Request) {
+		tournamentHandler.ByIDHandler(w, r)
+	})
+
+	// Attendants
 	mux.HandleFunc("GET /tournaments/{tournament_id}/attendants", func(w http.ResponseWriter, r *http.Request) {
 		attendantHandler.ListHandler(w, r, playerService)
 	})
@@ -87,10 +100,14 @@ func main() {
 	mux.HandleFunc("DELETE /tournaments/{tournament_id}/attendants/{attendant_id}", attendantHandler.DeleteHandler)
 	mux.HandleFunc("GET /tournaments/{tournament_id}/attendants/{attendant_id}", attendantHandler.ShowHandler)
 
-	mux.HandleFunc("/tournaments/", func(w http.ResponseWriter, r *http.Request) {
-		tournamentHandler.ByIDHandler(w, r)
-	})
-	mux.HandleFunc("/tournaments", tournamentHandler.CreateHandler)
+	// Discipline
+	mux.HandleFunc("GET /tournaments/{tournament_id}/disciplines", disciplineHandler.ListHandler)
+	mux.HandleFunc("POST /tournaments/{tournament_id}/disciplines", disciplineHandler.CreateHandler)
+	mux.HandleFunc("GET /tournaments/{tournament_id}/disciplines/{discipline_id}", disciplineHandler.ShowHandler)
+	mux.HandleFunc("DELETE /tournaments/{tournament_id}/disciplines/{discipline_id}", disciplineHandler.DeleteHandler)
+	mux.HandleFunc("PATCH /tournaments/{tournament_id}/disciplines/{discipline_id}", disciplineHandler.UpdateHandler)
+
+	// Players
 	mux.HandleFunc("/players", playerHandler.PlayersHandler)
 	mux.HandleFunc("/players/", playerHandler.PlayersHandler)
 

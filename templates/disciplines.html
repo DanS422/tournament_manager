@@ -1,0 +1,96 @@
+{{define "disciplines.html"}}
+{{template "base.html" .}}
+{{end}}
+
+{{define "content"}}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Disciplines</h2>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Discipline List</h5>
+
+    {{if .Disciplines}}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Players/team</th>
+            <th colspan="2" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $i, $discipline := .Disciplines}}
+          <tr>
+            <td>{{add $i 1}}</td>
+            <td>{{$discipline.Name}}</td>
+            <td>{{$discipline.NoOfTeamPlayers}}</td>
+            <td>
+              <a href="/tournaments/{{$discipline.TournamentID}}/disciplines/{{$discipline.ID}}">Edit</a>
+            </td>
+            <td>
+              <div class="col-md-3">
+                <form method="POST" action="/tournaments/{{$discipline.TournamentID}}/disciplines/{{$discipline.ID}}">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this discipline?')">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+      <p class="text-muted mb-0">No discipline yet.</p>
+      {{end}}
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Add Discipline</h5>
+
+    <form method="POST" action="/tournaments/{{.TournamentID}}/disciplines" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" class="form-control {{if .Errors.name}}is-invalid{{end}}">
+
+        {{if .Errors.name}}
+        <div class="invalid-feedback">
+          {{.Errors.name}}
+        </div>
+        {{end}}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Players/team</label>
+        <input type="text" name="no_of_team_players"
+          class="form-control {{if .Errors.no_of_team_players}}is-invalid{{end}}">
+
+        {{if .Errors.no_of_team_players}}
+        <div class="invalid-feedback">
+          {{.Errors.no_of_team_players}}
+        </div>
+        {{end}}
+      </div>
+
+
+      <div class="col-12 d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">
+          Add Discipline
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{end}}

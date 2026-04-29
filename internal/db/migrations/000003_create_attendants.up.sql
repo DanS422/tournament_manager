@@ -8,3 +8,6 @@ CREATE TABLE attendants (
 
     UNIQUE(tournament_id, player_id)
 );
+
+CREATE INDEX idx_attendants_tournament_id ON attendants(tournament_id);
+CREATE INDEX idx_attendants_player_id ON attendants(player_id);

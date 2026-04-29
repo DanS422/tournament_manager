@@ -1,0 +1,69 @@
+{{define "discipline.html"}}
+{{template "base.html" .}}
+{{end}}
+
+{{define "content"}}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Discipline</h2>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4">
+              <div class="row g-2 align-items-center">
+                <form method="POST" action="/tournaments/{{.TournamentID}}/disciplines/{{.Discipline.ID}}"
+                  class="col-md-9">
+                  <input type="hidden" name="_method" value="PATCH">
+                  <div class="row g-2">
+
+                    <div class="col-md-4">
+                      <input type="text" name="name" value="{{.Discipline.Name}}"
+                        class="form-control {{if .Errors.name}}is-invalid{{end}}">
+
+                      {{if .Errors.name}}
+                      <div class="invalid-feedback">
+                        {{.Errors.name}}
+                      </div>
+                      {{end}}
+                    </div>
+
+                    <div class="col-md-4">
+                      <input type="text" name="no_of_team_players" value="{{.Discipline.NoOfTeamPlayers}}"
+                        class="form-control {{if .Errors.no_of_team_players}}is-invalid{{end}}">
+
+                      {{if .Errors.no_of_team_players}}
+                      <div class="invalid-feedback">
+                        {{.Errors.no_of_team_players}}
+                      </div>
+                      {{end}}
+                    </div>
+
+                    <div class="col-md-1">
+                      <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{end}}
